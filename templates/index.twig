@@ -1,0 +1,12 @@
+{% extends 'base.twig' %}
+
+{% block content %}
+    <h1>List all nodes</h1>
+    <ul>
+        {% for node in nodes %}
+            <li>
+                <a href="{{ node.getIdentifier }}">{{ node.getPropertyValue('title') }}</a>
+            </li>
+        {% endfor %}
+    </ul>
+{% endblock %}
