@@ -1,0 +1,62 @@
+{% extends 'base.twig' %}
+
+{% block content %}
+    <h1>Node type {{ node_type_name }}</h1>
+
+    <table class="table">
+        <thead>
+        <tr>
+            <th>Node properties</th>
+            <th>Type</th>
+            <th>Autocreated</th>
+            <th>Full-text searchable</th>
+            <th>Mandatory</th>
+            <th>Protected</th>
+            <th>Query orderable</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for property in node_properties %}
+            <tr>
+                <td>{{ property.getName }}</td>
+                <td>{{ property_types[property.getRequiredType] }}</td>
+                <td>
+                    {% if property.isAutoCreated %}
+                        <i class="glyphicon glyphicon-ok"></i>
+                    {% else %}
+                        <i class="glyphicon glyphicon-remove"></i>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if property.isFullTextSearchable %}
+                        <i class="glyphicon glyphicon-ok"></i>
+                    {% else %}
+                        <i class="glyphicon glyphicon-remove"></i>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if property.isMandatory %}
+                        <i class="glyphicon glyphicon-ok"></i>
+                    {% else %}
+                        <i class="glyphicon glyphicon-remove"></i>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if property.isMultiple %}
+                        <i class="glyphicon glyphicon-ok"></i>
+                    {% else %}
+                        <i class="glyphicon glyphicon-remove"></i>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if property.isQueryOrderable %}
+                        <i class="glyphicon glyphicon-ok"></i>
+                    {% else %}
+                        <i class="glyphicon glyphicon-remove"></i>
+                    {% endif %}
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

@@ -2,8 +2,11 @@
 
 require_once __DIR__ . '/vendor/autoload.php';
 
+use Jackalope\Node;
 use Jackalope\RepositoryFactoryJackrabbit;
 use Jackalope\Session;
+use PHPCR\NodeInterface;
+use PHPCR\PropertyType;
 use PHPCR\SimpleCredentials;
 use Slim\Http\Request;
 use Slim\Http\Response;
@@ -62,22 +65,77 @@ $container['view'] = function ($container) {
  * -------------------------------------------------------------------------- */
 
 $app->get('/', function(Request $request, Response $response) {
+  return $this->view->render($response, 'index.twig');
+});
+
+$app->get('/nodes', function ($request, $response) {
   /* @var $session Session */
   $session = $this->get('jackalope');
-  $rootNode = $session->getNode('/pages');
+  $nodes = $session->getRootNode()->getNodes();
 
-  return $this->view->render($response, 'index.twig', [
-    'nodes' => $rootNode->getNodes()
+  return $this->view->render($response, 'nodes.twig', [
+    'nodes' => $nodes,
   ]);
 });
 
-$app->get('/pages/{id}', function($request, $response, $args) {
+$app->get('/nodes_json', function (Request $request, Response $response) {
   /* @var $session Session */
   $session = $this->get('jackalope');
-  $node = $session->getNode('/pages/' . $args['id']);
+  $node_name = $request->getParam('node_name');
+  $node = $session->getNode($node_name);
+  $children = [];
 
-  return $this->view->render($response, 'node.twig', [
-    'node' => $node
+  foreach ($node->getNodes() as $child_node) {
+    $children[] = [
+      'name' => $child_node->getName(),
+      'path' => $child_node->getPath(),
+      'has_nodes' => $child_node->hasNodes(),
+    ];
+  }
+
+  return $response->withJson([
+    'children' => $children,
+  ]);
+});
+
+$app->get('/node-types', function ($request, $response) {
+  /* @var $session Session */
+  $session = $this->get('jackalope');
+  $node_types = $session->getWorkspace()->getNodeTypeManager()
+    ->getAllNodeTypes();
+
+  return $this->view->render($response, 'node-types.twig', [
+    'node_types' => $node_types,
+  ]);
+});
+
+$app->get('/node-types/{id}', function ($request, $response, $args) {
+  /* @var $session Session */
+  $session = $this->get('jackalope');
+  $node_type = $session->getWorkspace()->getNodeTypeManager()
+    ->getNodeType($args['id']);
+  $node_properties = $node_type->getPropertyDefinitions();
+
+  $property_types = [
+    PropertyType::STRING        => 'String',
+    PropertyType::DATE          => 'Date',
+    PropertyType::BINARY        => 'Binary',
+    PropertyType::DOUBLE        => 'Double',
+    PropertyType::DECIMAL       => 'Decimal',
+    PropertyType::LONG          => 'Long',
+    PropertyType::BOOLEAN       => 'Boolean',
+    PropertyType::NAME          => 'Name',
+    PropertyType::PATH          => 'Path',
+    PropertyType::URI           => 'Uri',
+    PropertyType::REFERENCE     => 'Reference',
+    PropertyType::WEAKREFERENCE => 'Weak reference',
+    PropertyType::UNDEFINED     => 'Undefined',
+  ];
+
+  return $this->view->render($response, 'node-type.twig', [
+    'node_type_name' => $node_type->getName(),
+    'node_properties' => $node_properties,
+    'property_types' => $property_types,
   ]);
 });
 

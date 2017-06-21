@@ -1,0 +1,41 @@
+{% extends 'base.twig' %}
+
+{% block content %}
+    <h1>Node types</h1>
+
+    <table class="table table-hover table-striped">
+        <thead>
+        <tr>
+            <th>Node type name</th>
+            <th>Supertypes</th>
+            <th>Subtypes</th>
+        </tr>
+        </thead>
+        {% for node_type in node_types %}
+            <tr>
+                <td>
+                    <a href="/node-types/{{ node_type.getName }}">{{ node_type.getName }}</a>
+                </td>
+                <td>
+                    <ul>
+                        {% for supertype in node_type.getSupertypes %}
+                            <li>
+                                <a href="/node-types/{{ supertype.getName }}">{{ supertype.getName }}</a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </td>
+                <td>
+                    <ul>
+                        {% for subtype in node_type.getSubtypes %}
+                            <li>
+                                <a href="/node-types/{{ subtype.getName }}">{{ subtype.getName }}</a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </td>
+            </tr>
+        {% endfor %}
+    </table>
+
+{% endblock %}
