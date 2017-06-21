@@ -82,20 +82,27 @@ $app->get('/nodes_json', function (Request $request, Response $response) {
   /* @var $session Session */
   $session = $this->get('jackalope');
   $node_name = $request->getParam('node_name');
-  $node = $session->getNode($node_name);
-  $children = [];
+  $status = 200;
+  $body = [];
 
-  foreach ($node->getNodes() as $child_node) {
-    $children[] = [
-      'name' => $child_node->getName(),
-      'path' => $child_node->getPath(),
-      'has_nodes' => $child_node->hasNodes(),
-    ];
+  try {
+    $node = $session->getNode($node_name);
+
+    foreach ($node->getNodes() as $child_node) {
+      $body['children'][] = [
+        'name' => $child_node->getName(),
+        'path' => $child_node->getPath(),
+        'has_nodes' => $child_node->hasNodes(),
+      ];
+    }
+  } catch (\Exception $e) {
+    $status = 500;
+    $body['message'] = $e->getMessage();
   }
 
   return $response->withJson([
-    'children' => $children,
-  ]);
+    'data' => $body,
+  ], $status);
 });
 
 $app->get('/node-types', function ($request, $response) {

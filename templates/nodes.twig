@@ -7,7 +7,7 @@
         {% for node in nodes %}
             <li>
                 <a class="{% if node.hasNodes %}has-nodes{% endif %}" data-node-path="{{ node.getPath }}" href="#">
-                    {% if node.hasNodes %}<i class="glyphicon glyphicon-folder-close"></i> {% endif %}{{ node.getName }}
+                    {% if node.hasNodes %}<i class="glyphicon glyphicon-folder-close"></i> {% else %}<i class="glyphicon glyphicon-file"></i> {% endif %}{{ node.getName }}
                 </a>
             </li>
         {% endfor %}
@@ -17,11 +17,13 @@
         $(function () {
             $('#node-list').on('click', 'a', function (ev) {
                 var list_element = $(this).parent();
+                var icon = $(this).find('i');
 
-                $(this)
-                    .find('i')
-                    .toggleClass('glyphicon-folder-close')
-                    .toggleClass('glyphicon-folder-open');
+                if (!icon.hasClass('glyphicon-file')) {
+                    icon
+                        .toggleClass('glyphicon-folder-close')
+                        .toggleClass('glyphicon-folder-open');
+                }
 
                 if ($(this).hasClass('expanded') || !$(this).hasClass('has-nodes')) {
                     $(this).next().toggle();
@@ -37,18 +39,18 @@
                 }, function (data) {
                     var new_list = $('<ul>');
 
-                    for (var i = 0; i < data.children.length; i++) {
-                        var has_nodes = data.children[i].has_nodes;
-                        var arrow = has_nodes ? '<i class="glyphicon glyphicon-folder-close"></i> ' : '';
+                    for (var i = 0; i < data.data.children.length; i++) {
+                        var has_nodes = data.data.children[i].has_nodes;
+                        var arrow = has_nodes ? '<i class="glyphicon glyphicon-folder-close"></i> ' : '<i class="glyphicon glyphicon-file"></i>';
 
                         new_list
                             .append(
                                 $('<li>').append(
                                     $('<a>')
                                         .attr('href', '#')
-                                        .attr('data-node-path', data.children[i].path)
+                                        .attr('data-node-path', data.data.children[i].path)
                                         .addClass(has_nodes ? 'has-nodes' : '')
-                                        .html(arrow + data.children[i].name)
+                                        .html(arrow + data.data.children[i].name)
                                 )
                             );
 
