@@ -6,6 +6,7 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <link rel="stylesheet" href="/assets/vendor/css/bootstrap.min.css">
     <link rel="stylesheet" href="/assets/vendor/css/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="/assets/vendor/js/themes/default/style.min.css">
     <link rel="stylesheet" href="/assets/css/main.css">
     <title>Document</title>
 </head>
@@ -25,9 +26,9 @@
 
             <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
                 <ul class="nav navbar-nav">
-                    <li class="active"><a href="{{ path_for('front') }}">Home</a></li>
-                    <li><a href="{{ path_for('nodes') }}">Nodes</a></li>
-                    <li><a href="{{ path_for('node_types') }}">Node types</a></li>
+                    <li {% if current_route == 'front' %}class="active"{% endif %}><a href="{{ path_for('front') }}">Home</a></li>
+                    <li {% if current_route == 'nodes' %}class="active"{% endif %}><a href="{{ path_for('nodes') }}">Nodes</a></li>
+                    <li {% if current_route == 'node_types' %}class="active"{% endif %}><a href="{{ path_for('node_types') }}">Node types</a></li>
                 </ul>
             </div>
         </div>

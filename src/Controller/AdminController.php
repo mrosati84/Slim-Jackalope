@@ -26,15 +26,18 @@ class AdminController extends BaseController {
    * @throws ContainerException
    */
   public function front(Request $request, Response $response, $args) {
-    return $this->container->get('view')->render($response, 'index.twig');
+    return $this->container->get('view')->render($response, 'front.twig', [
+      'current_route' => $request->getAttribute('route')->getName(),
+    ]);
   }
 
-  public function nodes($request, $response, $args) {
+  public function nodes(Request $request, Response $response, $args) {
     /* @var $session Session */
     $session = $this->container->get('jackalope');
     $nodes = $session->getRootNode()->getNodes();
 
     return $this->container->get('view')->render($response, 'nodes.twig', [
+      'current_route' => $request->getAttribute('route')->getName(),
       'nodes' => $nodes,
     ]);
   }
@@ -46,34 +49,41 @@ class AdminController extends BaseController {
    *
    * @return mixed
    *
+   * @throws \InvalidArgumentException
+   * @throws ContainerValueNotFoundException
+   * @throws \PHPCR\RepositoryException
    * @throws ContainerException
    * @throws \RuntimeException
    */
   public function nodes_json(Request $request, Response $response, $args) {
     /* @var $session Session */
     $session = $this->container->get('jackalope');
-    $node_name = $request->getParam('node_name');
-    $status = 200;
-    $body = [];
+    $node_name = $request->getParam('id');
+    $output = '<ul>';
+    $node = null;
 
     try {
       $node = $session->getNode($node_name);
-
-      foreach ($node->getNodes() as $child_node) {
-        $body['children'][] = [
-          'name' => $child_node->getName(),
-          'path' => $child_node->getPath(),
-          'has_nodes' => $child_node->hasNodes(),
-        ];
-      }
-    } catch (\Exception $e) {
-      $status = 500;
-      $body['message'] = $e->getMessage();
+    }
+    catch (\Exception $e) {
+      $node = $session->getRootNode();
     }
 
-    return $response->withJson([
-      'data' => $body,
-    ], $status);
+    foreach ($node->getNodes() as $child_node) {
+      $has_children = $child_node->hasNodes();
+      $icon = $has_children ? 'jstree-folder' : 'jstree-file';
+      $output .= sprintf('<li data-jstree=\'{"icon": "%s"}\' id="%s" class="%s">%s</li>',
+        $icon,
+        $child_node->getPath(),
+        $has_children ? 'jstree-closed' : 'jstree-leaf',
+        $child_node->getName());
+    }
+
+    $output .= '</ul>';
+
+    $response->write($output);
+
+    return $response;
   }
 
   /**
@@ -93,6 +103,7 @@ class AdminController extends BaseController {
       ->getAllNodeTypes();
 
     return $this->container->get('view')->render($response, 'node-types.twig', [
+      'current_route' => $request->getAttribute('route')->getName(),
       'node_types' => $node_types,
     ]);
   }
@@ -131,6 +142,7 @@ class AdminController extends BaseController {
     ];
 
     return $this->container->get('view')->render($response, 'node-type.twig', [
+      'current_route' => $request->getAttribute('route')->getName(),
       'node_type_name' => $node_type->getName(),
       'node_properties' => $node_properties,
       'property_types' => $property_types,
