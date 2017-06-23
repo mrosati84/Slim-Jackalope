@@ -3,8 +3,11 @@
 namespace JRAdmin\Controller;
 
 use Interop\Container\Exception\ContainerException;
+use Jackalope\Property;
 use Jackalope\Session;
+use PHPCR\PathNotFoundException;
 use PHPCR\PropertyType;
+use PHPCR\RepositoryException;
 use Slim\Exception\ContainerValueNotFoundException;
 use Slim\Http\Request;
 use Slim\Http\Response;
@@ -118,7 +121,7 @@ class AdminController extends BaseController {
    * @throws ContainerException
    * @throws ContainerValueNotFoundException
    */
-  public function node(Request $request, Response $response, $args) {
+  public function node_type(Request $request, Response $response, $args) {
     /* @var $session Session */
     $session = $this->container->get('jackalope');
     $node_type = $session->getWorkspace()->getNodeTypeManager()
@@ -147,6 +150,58 @@ class AdminController extends BaseController {
       'node_properties' => $node_properties,
       'property_types' => $property_types,
     ]);
+  }
+
+  /**
+   * @param Request $request
+   * @param Response $response
+   * @param $args
+   *
+   * @return mixed
+   * @throws \InvalidArgumentException
+   * @throws \RuntimeException
+   *
+   * @throws ContainerException
+   * @throws PathNotFoundException
+   * @throws ContainerValueNotFoundException
+   * @throws RepositoryException
+   */
+  public function node(Request $request, Response $response, $args) {
+    $id = $request->getParam('id');
+    /* @var $session Session */
+    $session = $this->container->get('jackalope');
+    $output = [];
+
+    try {
+      $node = $session->getNode($id);
+      $output['id'] = $node->getIdentifier();
+      $output['name'] = $node->getName();
+
+      /* @var $property Property */
+      foreach ($node->getProperties() as $property) {
+        $output['properties'][] = [
+          'name' => $property->getName(),
+          'type' => $property->getType(),
+          'value' => $property->getValue(),
+        ];
+      }
+
+      return $response->withJson($output);
+    }
+    catch (PathNotFoundException $e) {
+      // Node was not found.
+      return $response->withStatus(404)
+        ->withJson([
+          'message' => 'node not found'
+        ]);
+    }
+    catch (RepositoryException $e) {
+      // Invalid path specified (not an absolute path).
+      return $response->withStatus(500)
+        ->withJson([
+          'message' => 'invalid path'
+        ]);
+    }
   }
 
 }

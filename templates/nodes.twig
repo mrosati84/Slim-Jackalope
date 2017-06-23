@@ -1,9 +1,32 @@
 {% extends 'base.twig' %}
 
 {% block content %}
+    <style>
+        #node-list {
+            background: #f5f5f5;
+            border-radius: 5px;
+            padding: 10px;
+            max-height: 500px;
+            overflow: scroll;
+        }
+        #node-detail {
+            border-radius: 5px;
+            border: 1px solid #eee;
+            padding: 10px;
+        }
+    </style>
     <h1>Nodes</h1>
 
-    <div id="node-list"></div>
+    <div class="row">
+        <div class="col-md-3">
+            <div id="node-list"></div>
+        </div>
+        <div class="col-md-9">
+            <div id="node-detail">
+                <p>ciao</p>
+            </div>
+        </div>
+    </div>
 {% endblock %}
 
 {% block javascript %}

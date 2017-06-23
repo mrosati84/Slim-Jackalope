@@ -68,9 +68,10 @@ $container['AdminController'] = function ($container) {
 
 $app->get('/', 'AdminController:front')->setName('front');
 $app->get('/nodes', 'AdminController:nodes')->setName('nodes');
+$app->get('/node', 'AdminController:node')->setName('nodes');
 $app->get('/nodes_json', 'AdminController:nodes_json');
 $app->get('/node-types', 'AdminController:node_types')
   ->setName('node_types');
-$app->get('/node-types/{id}', 'AdminController:node');
+$app->get('/node-types/{id}', 'AdminController:node_type');
 
 $app->run();
