@@ -22,7 +22,7 @@ $app = new Slim\App($container);
 $container['settings']['displayErrorDetails'] = (bool) getenv('DISPLAY_ERRORS');
 $container['settings']['determineRouteBeforeAppMiddleware'] = true;
 
-$container['jackalope'] = function ($container) {
+$container['jackalope'] = function () {
   $jackrabbit_url = getenv('JACKRABBIT_URL');
   $user           = getenv('JACKRABBIT_USER');
   $pass           = getenv('JACKRABBIT_PASSWORD');
@@ -68,7 +68,8 @@ $container['AdminController'] = function ($container) {
 
 $app->get('/', 'AdminController:front')->setName('front');
 $app->get('/nodes', 'AdminController:nodes')->setName('nodes');
-$app->get('/node', 'AdminController:node')->setName('nodes');
+$app->get('/node', 'AdminController:node')->setName('node');
+$app->delete('/node', 'AdminController:node_delete')->setName('delete_node');
 $app->get('/nodes_json', 'AdminController:nodes_json');
 $app->get('/node-types', 'AdminController:node_types')
   ->setName('node_types');
