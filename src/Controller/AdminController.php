@@ -22,19 +22,30 @@ class AdminController extends BaseController {
   /**
    * @param Request $request
    * @param Response $response
-   * @param array $args
    *
    * @return mixed
    *
    * @throws ContainerException
    */
-  public function front(Request $request, Response $response, $args) {
+  public function front(Request $request, Response $response) {
     return $this->container->get('view')->render($response, 'front.twig', [
       'current_route' => $request->getAttribute('route')->getName(),
     ]);
   }
 
-  public function nodes(Request $request, Response $response, $args) {
+  /**
+   * Get a list of nodes.
+   *
+   * @param Request $request
+   * @param Response $response
+   *
+   * @return mixed
+   *
+   * @throws ContainerValueNotFoundException
+   * @throws \PHPCR\RepositoryException
+   * @throws ContainerException
+   */
+  public function nodes(Request $request, Response $response) {
     /* @var $session Session */
     $session = $this->container->get('jackalope');
     $nodes = $session->getRootNode()->getNodes();
@@ -48,7 +59,6 @@ class AdminController extends BaseController {
   /**
    * @param Request $request
    * @param Response $response
-   * @param array $args
    *
    * @return mixed
    *
@@ -58,7 +68,7 @@ class AdminController extends BaseController {
    * @throws ContainerException
    * @throws \RuntimeException
    */
-  public function nodes_json(Request $request, Response $response, $args) {
+  public function nodes_json(Request $request, Response $response) {
     /* @var $session Session */
     $session = $this->container->get('jackalope');
     $node_name = $request->getParam('id');
@@ -92,14 +102,13 @@ class AdminController extends BaseController {
   /**
    * @param Request $request
    * @param Response $response
-   * @param array $args
    *
    * @return mixed
    *
    * @throws ContainerException
    * @throws ContainerValueNotFoundException
    */
-  public function node_types(Request $request, Response $response, $args) {
+  public function node_types(Request $request, Response $response) {
     /* @var $session Session */
     $session = $this->container->get('jackalope');
     $node_types = $session->getWorkspace()->getNodeTypeManager()
@@ -155,7 +164,6 @@ class AdminController extends BaseController {
   /**
    * @param Request $request
    * @param Response $response
-   * @param $args
    *
    * @return mixed
    * @throws \InvalidArgumentException
@@ -166,7 +174,7 @@ class AdminController extends BaseController {
    * @throws ContainerValueNotFoundException
    * @throws RepositoryException
    */
-  public function node(Request $request, Response $response, $args) {
+  public function node(Request $request, Response $response) {
     $id = $request->getParam('id');
     /* @var $session Session */
     $session = $this->container->get('jackalope');
@@ -203,14 +211,57 @@ class AdminController extends BaseController {
       // Node was not found.
       return $response->withStatus(404)
         ->withJson([
-          'message' => 'node not found'
+          'message' => sprintf('node not found: %s', $id)
         ]);
     }
     catch (RepositoryException $e) {
       // Invalid path specified (not an absolute path).
       return $response->withStatus(500)
         ->withJson([
-          'message' => 'invalid path'
+          'message' => sprintf('invalid path: %s', $id)
+        ]);
+    }
+  }
+
+  /**
+   * Delete a node.
+   *
+   * @param Request $request
+   * @param Response $response
+   *
+   * @return Response
+   *
+   * @throws ContainerValueNotFoundException
+   * @throws \InvalidArgumentException
+   * @throws ContainerException
+   * @throws \RuntimeException
+   */
+  public function node_delete(Request $request, Response $response) {
+    $id = $request->getParam('id');
+    /* @var $session Session */
+    $session = $this->container->get('jackalope');
+
+    try {
+      $node = $session->getNode($id);
+      $node->remove();
+      $session->save();
+
+      return $response->withJson([
+        'message' => 'node deleted'
+      ]);
+    }
+    catch (PathNotFoundException $e) {
+      // Node was not found.
+      return $response->withStatus(404)
+        ->withJson([
+          'message' => sprintf('node not found: %s', $id)
+        ]);
+    }
+    catch (RepositoryException $e) {
+      // Invalid path specified (not an absolute path).
+      return $response->withStatus(500)
+        ->withJson([
+          'message' => sprintf('invalid path: %s', $id)
         ]);
     }
   }

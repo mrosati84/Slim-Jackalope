@@ -76,4 +76,12 @@
             node_detail.append(attributes);
         });
     });
+
+    node_list.on('delete_node.jstree', function (ev, data) {
+        $.ajax({
+            url: '/node?' + $.param({id: data.node.id}),
+            method: 'DELETE',
+            contentType: 'application/json'
+        });
+    });
 }());
