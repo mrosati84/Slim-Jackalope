@@ -1,6 +1,20 @@
 (function () {
     var node_list = $('#node-list'),
-        node_detail = $('#node-detail');
+        node_detail = $('#node-detail'),
+        PROPERTY_TYPE = {
+            1:  'String',
+            2:  'Binary',
+            3:  'Long',
+            4:  'Double',
+            5:  'Date',
+            6:  'Bool',
+            7:  'Name',
+            8:  'Path',
+            9:  'Reference',
+            10: 'Weak reference',
+            11: 'URI',
+            12: 'Decimal'
+        };
 
     node_list.jstree({
         core: {
@@ -41,6 +55,7 @@
                 .append($('<thead>').append(
                     $('<tr>').append(
                         $('<th>').html('Property name'),
+                        $('<th>').html('Property type'),
                         $('<th>').html('Property value')
                     )
                 ))
@@ -51,6 +66,7 @@
             for (var i = 0; i < data.properties.length; i++) {
                 var attribute = $('<tr>').append(
                     $('<td>').html(data.properties[i].name),
+                    $('<td>').html(PROPERTY_TYPE[data.properties[i].type]),
                     $('<td>').html(data.properties[i].value)
                 );
 
@@ -58,7 +74,6 @@
             }
 
             node_detail.append(attributes);
-            console.log(data);
         });
     });
 }());

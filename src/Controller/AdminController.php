@@ -179,10 +179,21 @@ class AdminController extends BaseController {
 
       /* @var $property Property */
       foreach ($node->getProperties() as $property) {
+        $property_value = $property->getValue();
+
+        if (is_object($property_value)) {
+          if (get_class($property_value) === \DateTime::class) {
+            $property_value = $property_value->format('Y-m-d H:i:s');
+          }
+        }
+        if (is_resource($property_value)) {
+          $property_value = '<i>resource</i>';
+        }
+
         $output['properties'][] = [
           'name' => $property->getName(),
           'type' => $property->getType(),
-          'value' => $property->getValue(),
+          'value' => $property_value,
         ];
       }
 
