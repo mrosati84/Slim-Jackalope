@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="/assets/css/main.css">
     <title>Document</title>
 </head>
-<body>
+<body ng-app="JRAdmin">
 <div class="container">
     <nav class="navbar navbar-default">
         <div class="container-fluid">
@@ -37,6 +37,13 @@
     {% block content %}{% endblock %}
 
     <script src="/assets/vendor/js/jquery.min.js"></script>
+    <script src="/assets/vendor/js/angular.min.js"></script>
+
+    <script>
+        angular.module('JRAdmin', []).config(function($interpolateProvider){
+            $interpolateProvider.startSymbol('[[').endSymbol(']]');
+        });
+    </script>
     {% block javascript %}{% endblock %}
 </div>
 </body>

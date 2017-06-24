@@ -46,7 +46,7 @@ class AdminController extends BaseController {
    * @throws ContainerException
    */
   public function nodes(Request $request, Response $response) {
-    /* @var $session Session */
+    /* @var Session $session */
     $session = $this->container->get('jackalope');
     $nodes = $session->getRootNode()->getNodes();
 
@@ -69,7 +69,7 @@ class AdminController extends BaseController {
    * @throws \RuntimeException
    */
   public function nodes_json(Request $request, Response $response) {
-    /* @var $session Session */
+    /* @var Session $session */
     $session = $this->container->get('jackalope');
     $node_name = $request->getParam('id');
     $output = '<ul>';
@@ -109,7 +109,7 @@ class AdminController extends BaseController {
    * @throws ContainerValueNotFoundException
    */
   public function node_types(Request $request, Response $response) {
-    /* @var $session Session */
+    /* @var Session $session */
     $session = $this->container->get('jackalope');
     $node_types = $session->getWorkspace()->getNodeTypeManager()
       ->getAllNodeTypes();
@@ -131,7 +131,7 @@ class AdminController extends BaseController {
    * @throws ContainerValueNotFoundException
    */
   public function node_type(Request $request, Response $response, $args) {
-    /* @var $session Session */
+    /* @var Session $session */
     $session = $this->container->get('jackalope');
     $node_type = $session->getWorkspace()->getNodeTypeManager()
       ->getNodeType($args['id']);
@@ -176,7 +176,7 @@ class AdminController extends BaseController {
    */
   public function node(Request $request, Response $response) {
     $id = $request->getParam('id');
-    /* @var $session Session */
+    /* @var Session $session */
     $session = $this->container->get('jackalope');
     $output = [];
 
@@ -188,6 +188,7 @@ class AdminController extends BaseController {
       /* @var $property Property */
       foreach ($node->getProperties() as $property) {
         $property_value = $property->getValue();
+        $property_definition = $property->getDefinition();
 
         if (is_object($property_value)) {
           if (get_class($property_value) === \DateTime::class) {
@@ -202,6 +203,7 @@ class AdminController extends BaseController {
           'name' => $property->getName(),
           'type' => $property->getType(),
           'value' => $property_value,
+          'protected' => $property_definition->isProtected(),
         ];
       }
 
@@ -211,14 +213,14 @@ class AdminController extends BaseController {
       // Node was not found.
       return $response->withStatus(404)
         ->withJson([
-          'message' => sprintf('node not found: %s', $id)
+          'message' => $e->getMessage()
         ]);
     }
     catch (RepositoryException $e) {
       // Invalid path specified (not an absolute path).
       return $response->withStatus(500)
         ->withJson([
-          'message' => sprintf('invalid path: %s', $id)
+          'message' => $e->getMessage()
         ]);
     }
   }
@@ -238,7 +240,7 @@ class AdminController extends BaseController {
    */
   public function node_delete(Request $request, Response $response) {
     $id = $request->getParam('id');
-    /* @var $session Session */
+    /* @var Session $session */
     $session = $this->container->get('jackalope');
 
     try {
@@ -254,14 +256,70 @@ class AdminController extends BaseController {
       // Node was not found.
       return $response->withStatus(404)
         ->withJson([
-          'message' => sprintf('node not found: %s', $id)
+          'message' => $e->getMessage()
         ]);
     }
     catch (RepositoryException $e) {
       // Invalid path specified (not an absolute path).
       return $response->withStatus(500)
         ->withJson([
-          'message' => sprintf('invalid path: %s', $id)
+          'message' => $e->getMessage()
+        ]);
+    }
+  }
+
+  /**
+   * Update an existing node (i.e. add properties).
+   *
+   * @param Request $request
+   * @param Response $response
+   *
+   * @return Response
+   *
+   * @throws ContainerValueNotFoundException
+   * @throws \InvalidArgumentException
+   * @throws \RuntimeException
+   * @throws ContainerException
+   */
+  public function node_update(Request $request, Response $response) {
+    $id = $request->getParam('id');
+    /* @var Session $session */
+    $session = $this->container->get('jackalope');
+
+    try {
+      $node = $session->getNode($id);
+      /* @var array $properties */
+      $properties = $request->getParam('properties');
+
+      foreach ($properties as $property) {
+        foreach (['name', 'type', 'value'] as $key) {
+          if (!array_key_exists($key, $property)) {
+            continue;
+          }
+        }
+
+        // Update an existing property or set a new one.
+        $node->setProperty($property['name'], $property['value'], (int) $property['type']);
+      }
+
+      $session->save();
+
+      return $response->withJson([
+        'properties' => $properties,
+      ]);
+    }
+    catch (PathNotFoundException $e) {
+      // Node was not found.
+      return $response->withStatus(404)
+        ->withJson([
+          'message' => $e->getMessage()
+        ]);
+    }
+    catch (RepositoryException $e) {
+      // Invalid path specified (not an absolute path).
+      return $response->withStatus(500)
+        ->withJson([
+          'message' => $e->getMessage()
         ]);
     }
   }

@@ -8,6 +8,7 @@
             padding: 10px;
             max-height: 500px;
             overflow: scroll;
+            margin-bottom: 10px;
         }
         #node-detail {
             border-radius: 5px;
@@ -15,15 +16,65 @@
             padding: 10px;
         }
     </style>
-    <h1>Nodes</h1>
 
     <div class="row">
         <div class="col-md-3">
             <div id="node-list"></div>
         </div>
         <div class="col-md-9">
-            <div id="node-detail">
-                <p>ciao</p>
+            <div id="node-detail" ng-controller="NodeCtrl">
+                <div ng-if="title && properties">
+                    <p><code>properties</code></p>
+                    <pre>[[ properties ]]</pre>
+                    <p><code>addedProperties</code></p>
+                    <pre>[[ addedProperties ]]</pre>
+                    <h1>[[ title ]]</h1>
+                    <table class="table">
+                        <thead>
+                        <tr>
+                            <th>Property name</th>
+                            <th>Property type</th>
+                            <th>Property value</th>
+                            <th>Operations</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr ng-repeat="property in properties" ng-if="property.value != null">
+                            <td>[[ property.name ]]</td>
+                            <td>[[ PROPERTY_TYPE[property.type] ]]</td>
+                            <td>[[ property.value ]]</td>
+                            <td>
+                                <div class="btn-group">
+                                    <button class="btn btn-primary" type="button"><i class="glyphicon glyphicon-pencil"></i></button>
+                                    <button ng-if="!property.protected" ng-click="removeProperty(property.name)" class="btn btn-danger" type="button"><i class="glyphicon glyphicon-remove-sign"></i></button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr ng-repeat="addedProperty in addedProperties">
+                            <td>
+                                <input type="text" ng-model="addedProperty.name">
+                            </td>
+                            <td>
+                                <select ng-model="addedProperty.type">
+                                    <option ng-repeat="(key, value) in PROPERTY_TYPE" value="[[ key ]]">
+                                        [[ value ]]
+                                    </option>
+                                </select>
+                            </td>
+                            <td>
+                                <input type="text" ng-model="addedProperty.value">
+                            </td>
+                            <td></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                    <button type="button" class="btn btn-primary" ng-click="addProperty()">
+                        <i class="glyphicon glyphicon-plus-sign"></i> Add property
+                    </button>
+                    <button ng-if="showSave" type="button" class="btn btn-success" ng-click="save()">
+                        <i class="glyphicon glyphicon-save"></i> Save
+                    </button>
+                </div>
             </div>
         </div>
     </div>

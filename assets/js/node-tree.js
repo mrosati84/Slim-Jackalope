@@ -1,7 +1,6 @@
 (function () {
-    var node_list = $('#node-list'),
-        node_detail = $('#node-detail'),
-        PROPERTY_TYPE = {
+    angular.module('JRAdmin').controller('NodeCtrl', ['$scope', '$http', function ($scope, $http) {
+        $scope.PROPERTY_TYPE = {
             1:  'String',
             2:  'Binary',
             3:  'Long',
@@ -15,6 +14,52 @@
             11: 'URI',
             12: 'Decimal'
         };
+
+        $scope.addedProperties = [];
+
+        $scope.addProperty = function () {
+            $scope.addedProperties.push({});
+            $scope.showSave = true;
+        };
+
+        $scope.save = function () {
+            for (var i = 0; i < $scope.addedProperties.length; i++) {
+                if (!$scope.addedProperties[i].name
+                    || !$scope.addedProperties[i].type
+                    || !$scope.addedProperties[i].value) {
+                    return;
+                }
+            }
+
+            $http.put('/node', { properties: $scope.properties.concat($scope.addedProperties) }, {
+                params: {
+                    id: $scope.nodeId
+                }
+            }).then(function(response) {
+                // Success, node has been updated.
+                $scope.showSave = false;
+                $scope.properties = response.data.properties;
+                $scope.addedProperties = [];
+            }, function(response) {
+                // Error updating node.
+                console.error(response);
+            });
+        };
+
+        $scope.removeProperty = function (propertyName) {
+            if (confirm('Sure?')) {
+                for (var i = 0; i < $scope.properties.length; i++) {
+                    if ($scope.properties[i].name === propertyName) {
+                        $scope.properties[i].value = null;
+                        $scope.showSave = true;
+                    }
+                }
+            }
+        }
+    }]);
+
+    var node_list = $('#node-list'),
+        $scope = undefined;
 
     node_list.jstree({
         core: {
@@ -44,36 +89,20 @@
         ]
     });
 
+    angular.element('#node-detail').ready(function () {
+        $scope = angular.element('#node-detail').scope();
+    });
+
     node_list.on('select_node.jstree', function (ev, data) {
         $.getJSON('/node', {
             'id': data.node.id
         }, function (data) {
-            node_detail.empty();
-
-            var attributes = $('<table>').addClass('table')
-                .attr('id', 'node-attributes')
-                .append($('<thead>').append(
-                    $('<tr>').append(
-                        $('<th>').html('Property name'),
-                        $('<th>').html('Property type'),
-                        $('<th>').html('Property value')
-                    )
-                ))
-                .append($('<tbody>'));
-
-            node_detail.append($('<h1>').html(data.id));
-
-            for (var i = 0; i < data.properties.length; i++) {
-                var attribute = $('<tr>').append(
-                    $('<td>').html(data.properties[i].name),
-                    $('<td>').html(PROPERTY_TYPE[data.properties[i].type]),
-                    $('<td>').html(data.properties[i].value)
-                );
-
-                attributes.append(attribute);
-            }
-
-            node_detail.append(attributes);
+            $scope.$apply(function () {
+                $scope.nodeId = data.id;
+                $scope.title = data.name;
+                $scope.properties = data.properties;
+                $scope.addedProperties = [];
+            });
         });
     });
 
