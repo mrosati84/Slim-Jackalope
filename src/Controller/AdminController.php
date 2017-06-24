@@ -68,11 +68,10 @@ class AdminController extends BaseController {
    * @throws ContainerException
    * @throws \RuntimeException
    */
-  public function nodes_json(Request $request, Response $response) {
+  public function nodes_ajax(Request $request, Response $response) {
     /* @var Session $session */
     $session = $this->container->get('jackalope');
     $node_name = $request->getParam('id');
-    $output = '<ul>';
     $node = null;
 
     try {
@@ -82,21 +81,9 @@ class AdminController extends BaseController {
       $node = $session->getRootNode();
     }
 
-    foreach ($node->getNodes() as $child_node) {
-      $has_children = $child_node->hasNodes();
-      $icon = $has_children ? 'jstree-folder' : 'jstree-file';
-      $output .= sprintf('<li data-jstree=\'{"icon": "%s"}\' id="%s" class="%s">%s</li>',
-        $icon,
-        $child_node->getPath(),
-        $has_children ? 'jstree-closed' : 'jstree-leaf',
-        $child_node->getName());
-    }
-
-    $output .= '</ul>';
-
-    $response->write($output);
-
-    return $response;
+    return $this->container->get('view')->render($response, 'nodes_ajax.twig', [
+      'node' => $node,
+    ]);
   }
 
   /**

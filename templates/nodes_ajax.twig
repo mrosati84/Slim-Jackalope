@@ -1,0 +1,9 @@
+<ul>
+    {% for child_node in node.getNodes() %}
+        {% set has_children = child_node.hasNodes() %}
+        {% set icon = has_children ? 'jstree-folder' : 'jstree-file' %}
+        {% set class = has_children ? 'jstree-closed' : 'jstree-leaf' %}
+
+        <li data-jstree='{"icon": "{{ icon }}"}' id="{{ child_node.getPath() }}" class="{{ class }}">{{ child_node.getName() }}</li>
+    {% endfor %}
+</ul>
