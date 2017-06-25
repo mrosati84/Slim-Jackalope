@@ -1,22 +1,6 @@
 {% extends 'base.twig' %}
 
 {% block content %}
-    <style>
-        #node-list {
-            background: #f5f5f5;
-            border-radius: 5px;
-            padding: 10px;
-            max-height: 500px;
-            overflow: scroll;
-            margin-bottom: 10px;
-        }
-        #node-detail {
-            border-radius: 5px;
-            border: 1px solid #eee;
-            padding: 10px;
-        }
-    </style>
-
     <div class="row">
         <div class="col-md-3">
             <div id="node-list"></div>
@@ -24,10 +8,12 @@
         <div class="col-md-9">
             <div id="node-detail" ng-controller="NodeCtrl">
                 <div ng-if="title && properties">
-                    <p><code>properties</code></p>
-                    <pre>[[ properties ]]</pre>
-                    <p><code>addedProperties</code></p>
-                    <pre>[[ addedProperties ]]</pre>
+                    <div ng-if="DEBUG">
+                        <p><code>properties</code></p>
+                        <pre>[[ properties ]]</pre>
+                        <p><code>addedProperties</code></p>
+                        <pre>[[ addedProperties ]]</pre>
+                    </div>
                     <h1>[[ title ]]</h1>
                     <table class="table">
                         <thead>
