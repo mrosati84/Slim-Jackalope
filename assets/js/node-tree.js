@@ -113,6 +113,8 @@
             url: '/node?' + $.param({id: data.node.id}),
             method: 'DELETE',
             contentType: 'application/json'
+        }).done(function (data, textStatus, jqXHR) {
+            node_list.jstree(true).refresh();
         });
     });
 
@@ -130,6 +132,8 @@
                 parent: data.parent,
                 name: newName
             }
+        }).done(function (data, textStatus, jqXHR) {
+            node_list.jstree(true).refresh();
         });
     });
 
@@ -142,6 +146,8 @@
                 id: data.node.id,
                 new_name: data.text
             }
+        }).done(function (data, textStatus, jqXHR) {
+            node_list.jstree(true).refresh();
         });
     });
 
@@ -164,6 +170,8 @@
                 old_path: data.node.id,
                 new_path: newParent + data.node.text
             }
+        }).done(function (data, textStatus, jqXHR) {
+            node_list.jstree(true).refresh();
         });
     });
 }());

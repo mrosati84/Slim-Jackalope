@@ -234,7 +234,9 @@ class AdminController extends BaseController {
       $session->save();
     }
 
-    return $response;
+    return $response->withJson([
+      'message' => 'node created'
+    ]);
   }
 
   /**
