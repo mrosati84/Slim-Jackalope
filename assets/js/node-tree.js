@@ -113,4 +113,25 @@
             contentType: 'application/json'
         });
     });
+
+    node_list.on('create_node.jstree', function (ev, data) {
+        var newName = 'New node';
+        var newId = data.parent + '/' + newName;
+
+        $(this).jstree(true).set_id(data.node, newId);
+
+        $.ajax({
+            url: '/node',
+            method: 'POST',
+            contentType: 'application/json',
+            data: {
+                parent: data.parent,
+                name: newName
+            }
+        });
+    });
+
+    node_list.on('rename_node.jstree', function (ev, data) {
+        console.log(data);
+    });
 }());

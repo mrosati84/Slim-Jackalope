@@ -311,4 +311,43 @@ class AdminController extends BaseController {
     }
   }
 
+  /**
+   * @param Request $request
+   * @param Response $response
+   *
+   * @return Response
+   *
+   * @throws \PHPCR\ReferentialIntegrityException
+   * @throws \PHPCR\NodeType\NoSuchNodeTypeException
+   * @throws \PHPCR\InvalidItemStateException
+   * @throws \PHPCR\AccessDeniedException
+   * @throws \PHPCR\Version\VersionException
+   * @throws \PHPCR\NodeType\ConstraintViolationException
+   * @throws \PHPCR\Lock\LockException
+   * @throws \PHPCR\ItemExistsException
+   * @throws \InvalidArgumentException
+   * @throws \Slim\Exception\ContainerValueNotFoundException
+   * @throws \PHPCR\RepositoryException
+   * @throws \PHPCR\PathNotFoundException
+   * @throws \RuntimeException
+   * @throws ContainerException
+   */
+  public function node_create(Request $request, Response $response) {
+    /* @var Session $session */
+    $session = $this->container->get('jackalope');
+    $response_body = $request->getBody()->getContents();
+    $data = [];
+
+    parse_str($response_body, $data);
+
+    if ($data['name'] && $data['parent']) {
+      $parent_node = $session->getNode($data['parent']);
+      $parent_node->addNode($data['name'], 'nt:unstructured');
+
+      $session->save();
+    }
+
+    return $response;
+  }
+
 }
