@@ -138,8 +138,31 @@
             url: '/node',
             method: 'PUT',
             data: {
+                action: 'rename',
                 id: data.node.id,
                 new_name: data.text
+            }
+        });
+    });
+
+    node_list.on('move_node.jstree', function (ev, data) {
+        var newParent = '';
+
+        if (data.parent === '#') {
+            newParent = '/'
+        }
+        else {
+            newParent = data.parent + '/';
+        }
+
+        $.ajax({
+            url: '/node',
+            method: 'PUT',
+            data: {
+                action: 'move',
+                id: data.node.id,
+                old_path: data.node.id,
+                new_path: newParent + data.node.text
             }
         });
     });

@@ -252,21 +252,44 @@ class AdminController extends BaseController {
    */
   public function node_update(Request $request, Response $response) {
     $id = $request->getParam('id');
-    $new_name = $request->getParam('new_name');
+    $action = $request->getParam('action');
     /* @var Session $session */
     $session = $this->container->get('jackalope');
 
     try {
       $node = $session->getNode($id);
 
-      if ($new_name) {
-        // Rename the node.
-        $node->rename($new_name);
-        $session->save();
+      switch ($action) {
+        case 'rename':
+          $new_name = $request->getParam('new_name');
 
-        return $response->withJson([
-          'message' => 'node renamed',
-        ]);
+          if ($new_name) {
+            // Rename the node.
+            $node->rename($new_name);
+            $session->save();
+
+            return $response->withJson([
+              'message' => 'node renamed',
+            ]);
+          }
+
+          break;
+
+        case 'move':
+          $old_path = $request->getParam('old_path');
+          $new_path = $request->getParam('new_path');
+
+          $session->move($old_path, $new_path);
+          $session->save();
+
+          return $response->withJson([
+            'message' => 'node moved'
+          ]);
+
+          break;
+
+        case 'copy':
+          break;
       }
 
       /* @var array $properties */
