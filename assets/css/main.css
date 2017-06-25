@@ -6,7 +6,6 @@ ul {
     background: #f5f5f5;
     border-radius: 5px;
     padding: 10px;
-    max-height: 500px;
     overflow: scroll;
     margin-bottom: 10px;
 }
