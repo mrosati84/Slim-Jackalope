@@ -1,5 +1,7 @@
 (function () {
     angular.module('JRAdmin').controller('NodeCtrl', ['$scope', '$http', function ($scope, $http) {
+        $scope.DEBUG = true;
+
         $scope.PROPERTY_TYPE = {
             1:  'String',
             2:  'Binary',
@@ -132,6 +134,13 @@
     });
 
     node_list.on('rename_node.jstree', function (ev, data) {
-        console.log(data);
+        $.ajax({
+            url: '/node',
+            method: 'PUT',
+            data: {
+                id: data.node.id,
+                new_name: data.text
+            }
+        });
     });
 }());

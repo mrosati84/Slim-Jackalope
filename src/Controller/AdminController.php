@@ -19,6 +19,8 @@ use Slim\Http\Response;
  */
 class AdminController extends BaseController {
 
+  const DEFAULT_NODE_TYPE = 'nt:unstructured';
+
   /**
    * @param Request $request
    * @param Response $response
@@ -227,7 +229,7 @@ class AdminController extends BaseController {
 
     if ($data['name'] && $data['parent']) {
       $parent_node = $session->getNode($data['parent']);
-      $parent_node->addNode($data['name'], 'nt:unstructured');
+      $parent_node->addNode($data['name'], self::DEFAULT_NODE_TYPE);
 
       $session->save();
     }
@@ -250,11 +252,23 @@ class AdminController extends BaseController {
    */
   public function node_update(Request $request, Response $response) {
     $id = $request->getParam('id');
+    $new_name = $request->getParam('new_name');
     /* @var Session $session */
     $session = $this->container->get('jackalope');
 
     try {
       $node = $session->getNode($id);
+
+      if ($new_name) {
+        // Rename the node.
+        $node->rename($new_name);
+        $session->save();
+
+        return $response->withJson([
+          'message' => 'node renamed',
+        ]);
+      }
+
       /* @var array $properties */
       $properties = $request->getParam('properties');
 
@@ -333,9 +347,5 @@ class AdminController extends BaseController {
         ]);
     }
   }
-
-
-
-
 
 }
