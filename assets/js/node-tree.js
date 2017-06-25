@@ -64,7 +64,7 @@
     node_list.jstree({
         core: {
             data: {
-                url: '/nodes_ajax',
+                url: '/node?' + $.param({'type': 'list'}),
                 data: function(node) {
                     return {
                         id: node.id

@@ -69,9 +69,8 @@ $container['AdminController'] = function ($container) {
 $app->get('/', 'AdminController:front')->setName('front');
 
 $app->get('/nodes', 'AdminController:nodes')->setName('nodes');
-$app->get('/nodes_ajax', 'AdminController:nodes_ajax');
 
-$app->get('/node', 'AdminController:node')->setName('node');
+$app->get('/node', 'AdminController:node_show')->setName('node_show');
 $app->post('/node', 'AdminController:node_create')->setName('node_create');
 $app->put('/node', 'AdminController:node_update')->setName('node_update');
 $app->delete('/node', 'AdminController:node_delete')->setName('node_delete');

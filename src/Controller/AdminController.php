@@ -62,36 +62,6 @@ class AdminController extends BaseController {
    *
    * @return mixed
    *
-   * @throws \InvalidArgumentException
-   * @throws ContainerValueNotFoundException
-   * @throws \PHPCR\RepositoryException
-   * @throws ContainerException
-   * @throws \RuntimeException
-   */
-  public function nodes_ajax(Request $request, Response $response) {
-    /* @var Session $session */
-    $session = $this->container->get('jackalope');
-    $node_name = $request->getParam('id');
-    $node = null;
-
-    try {
-      $node = $session->getNode($node_name);
-    }
-    catch (\Exception $e) {
-      $node = $session->getRootNode();
-    }
-
-    return $this->container->get('view')->render($response, 'nodes_ajax.twig', [
-      'node' => $node,
-    ]);
-  }
-
-  /**
-   * @param Request $request
-   * @param Response $response
-   *
-   * @return mixed
-   *
    * @throws ContainerException
    * @throws ContainerValueNotFoundException
    */
@@ -161,11 +131,25 @@ class AdminController extends BaseController {
    * @throws ContainerValueNotFoundException
    * @throws RepositoryException
    */
-  public function node(Request $request, Response $response) {
+  public function node_show(Request $request, Response $response) {
     $id = $request->getParam('id');
+    $type = $request->getParam('type');
     /* @var Session $session */
     $session = $this->container->get('jackalope');
     $output = [];
+
+    if ($type === 'list' && $request->isXhr()) {
+      try {
+        $node = $session->getNode($id);
+      }
+      catch (\Exception $e) {
+        $node = $session->getRootNode();
+      }
+
+      return $this->container->get('view')->render($response, 'nodes_ajax.twig', [
+        'node' => $node,
+      ]);
+    }
 
     try {
       $node = $session->getNode($id);
@@ -195,6 +179,101 @@ class AdminController extends BaseController {
       }
 
       return $response->withJson($output);
+    }
+    catch (PathNotFoundException $e) {
+      // Node was not found.
+      return $response->withStatus(404)
+        ->withJson([
+          'message' => $e->getMessage()
+        ]);
+    }
+    catch (RepositoryException $e) {
+      // Invalid path specified (not an absolute path).
+      return $response->withStatus(500)
+        ->withJson([
+          'message' => $e->getMessage()
+        ]);
+    }
+  }
+
+  /**
+   * @param Request $request
+   * @param Response $response
+   *
+   * @return Response
+   *
+   * @throws \PHPCR\ReferentialIntegrityException
+   * @throws \PHPCR\NodeType\NoSuchNodeTypeException
+   * @throws \PHPCR\InvalidItemStateException
+   * @throws \PHPCR\AccessDeniedException
+   * @throws \PHPCR\Version\VersionException
+   * @throws \PHPCR\NodeType\ConstraintViolationException
+   * @throws \PHPCR\Lock\LockException
+   * @throws \PHPCR\ItemExistsException
+   * @throws \InvalidArgumentException
+   * @throws \Slim\Exception\ContainerValueNotFoundException
+   * @throws \PHPCR\RepositoryException
+   * @throws \PHPCR\PathNotFoundException
+   * @throws \RuntimeException
+   * @throws ContainerException
+   */
+  public function node_create(Request $request, Response $response) {
+    /* @var Session $session */
+    $session = $this->container->get('jackalope');
+    $response_body = $request->getBody()->getContents();
+    $data = [];
+
+    parse_str($response_body, $data);
+
+    if ($data['name'] && $data['parent']) {
+      $parent_node = $session->getNode($data['parent']);
+      $parent_node->addNode($data['name'], 'nt:unstructured');
+
+      $session->save();
+    }
+
+    return $response;
+  }
+
+  /**
+   * Update an existing node (i.e. add properties).
+   *
+   * @param Request $request
+   * @param Response $response
+   *
+   * @return Response
+   *
+   * @throws ContainerValueNotFoundException
+   * @throws \InvalidArgumentException
+   * @throws \RuntimeException
+   * @throws ContainerException
+   */
+  public function node_update(Request $request, Response $response) {
+    $id = $request->getParam('id');
+    /* @var Session $session */
+    $session = $this->container->get('jackalope');
+
+    try {
+      $node = $session->getNode($id);
+      /* @var array $properties */
+      $properties = $request->getParam('properties');
+
+      foreach ($properties as $property) {
+        foreach (['name', 'type', 'value'] as $key) {
+          if (!array_key_exists($key, $property)) {
+            continue;
+          }
+        }
+
+        // Update an existing property or set a new one.
+        $node->setProperty($property['name'], $property['value'], (int) $property['type']);
+      }
+
+      $session->save();
+
+      return $response->withJson([
+        'properties' => $properties,
+      ]);
     }
     catch (PathNotFoundException $e) {
       // Node was not found.
@@ -255,99 +334,8 @@ class AdminController extends BaseController {
     }
   }
 
-  /**
-   * Update an existing node (i.e. add properties).
-   *
-   * @param Request $request
-   * @param Response $response
-   *
-   * @return Response
-   *
-   * @throws ContainerValueNotFoundException
-   * @throws \InvalidArgumentException
-   * @throws \RuntimeException
-   * @throws ContainerException
-   */
-  public function node_update(Request $request, Response $response) {
-    $id = $request->getParam('id');
-    /* @var Session $session */
-    $session = $this->container->get('jackalope');
 
-    try {
-      $node = $session->getNode($id);
-      /* @var array $properties */
-      $properties = $request->getParam('properties');
 
-      foreach ($properties as $property) {
-        foreach (['name', 'type', 'value'] as $key) {
-          if (!array_key_exists($key, $property)) {
-            continue;
-          }
-        }
 
-        // Update an existing property or set a new one.
-        $node->setProperty($property['name'], $property['value'], (int) $property['type']);
-      }
-
-      $session->save();
-
-      return $response->withJson([
-        'properties' => $properties,
-      ]);
-    }
-    catch (PathNotFoundException $e) {
-      // Node was not found.
-      return $response->withStatus(404)
-        ->withJson([
-          'message' => $e->getMessage()
-        ]);
-    }
-    catch (RepositoryException $e) {
-      // Invalid path specified (not an absolute path).
-      return $response->withStatus(500)
-        ->withJson([
-          'message' => $e->getMessage()
-        ]);
-    }
-  }
-
-  /**
-   * @param Request $request
-   * @param Response $response
-   *
-   * @return Response
-   *
-   * @throws \PHPCR\ReferentialIntegrityException
-   * @throws \PHPCR\NodeType\NoSuchNodeTypeException
-   * @throws \PHPCR\InvalidItemStateException
-   * @throws \PHPCR\AccessDeniedException
-   * @throws \PHPCR\Version\VersionException
-   * @throws \PHPCR\NodeType\ConstraintViolationException
-   * @throws \PHPCR\Lock\LockException
-   * @throws \PHPCR\ItemExistsException
-   * @throws \InvalidArgumentException
-   * @throws \Slim\Exception\ContainerValueNotFoundException
-   * @throws \PHPCR\RepositoryException
-   * @throws \PHPCR\PathNotFoundException
-   * @throws \RuntimeException
-   * @throws ContainerException
-   */
-  public function node_create(Request $request, Response $response) {
-    /* @var Session $session */
-    $session = $this->container->get('jackalope');
-    $response_body = $request->getBody()->getContents();
-    $data = [];
-
-    parse_str($response_body, $data);
-
-    if ($data['name'] && $data['parent']) {
-      $parent_node = $session->getNode($data['parent']);
-      $parent_node->addNode($data['name'], 'nt:unstructured');
-
-      $session->save();
-    }
-
-    return $response;
-  }
 
 }
