@@ -1,6 +1,6 @@
 (function () {
     angular.module('JRAdmin').controller('NodeCtrl', ['$scope', '$http', function ($scope, $http) {
-        $scope.DEBUG = true;
+        $scope.DEBUG = false;
 
         $scope.PROPERTY_TYPE = {
             1:  'String',
@@ -39,9 +39,12 @@
                 }
             }).then(function(response) {
                 // Success, node has been updated.
+                console.log(response);
                 $scope.showSave = false;
                 $scope.properties = response.data.properties;
                 $scope.addedProperties = [];
+                $scope.alert = response.data.message;
+                $scope.alertClass = 'alert-success'
             }, function(response) {
                 // Error updating node.
                 console.error(response);
@@ -115,6 +118,10 @@
             contentType: 'application/json'
         }).done(function (data, textStatus, jqXHR) {
             node_list.jstree(true).refresh();
+            $scope.$apply(function () {
+                $scope.alert = data.message;
+                $scope.alertClass = 'alert-success'
+            });
         });
     });
 
@@ -134,6 +141,10 @@
             }
         }).done(function (data, textStatus, jqXHR) {
             node_list.jstree(true).refresh();
+            $scope.$apply(function () {
+                $scope.alert = data.message;
+                $scope.alertClass = 'alert-success'
+            });
         });
     });
 
@@ -148,6 +159,10 @@
             }
         }).done(function (data, textStatus, jqXHR) {
             node_list.jstree(true).refresh();
+            $scope.$apply(function () {
+                $scope.alert = data.message;
+                $scope.alertClass = 'alert-success'
+            });
         });
     });
 
@@ -172,6 +187,10 @@
             }
         }).done(function (data, textStatus, jqXHR) {
             node_list.jstree(true).refresh();
+            $scope.$apply(function () {
+                $scope.alert = data.message;
+                $scope.alertClass = 'alert-success'
+            });
         });
     });
 }());

@@ -8,6 +8,10 @@
         <div class="col-md-9">
             <div id="node-detail" ng-controller="NodeCtrl">
                 <div ng-if="title && properties">
+                    <div ng-if="alert" class="alert alert-dismissible [[ alertClass ]]" role="alert">
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                        [[ alert ]]
+                    </div>
                     <div ng-if="DEBUG">
                         <p><code>properties</code></p>
                         <pre>[[ properties ]]</pre>
@@ -31,7 +35,7 @@
                             <td>[[ property.value ]]</td>
                             <td>
                                 <div class="btn-group">
-                                    <button class="btn btn-primary" type="button"><i class="glyphicon glyphicon-pencil"></i></button>
+                                    <button ng-if="!property.protected" class="btn btn-primary" type="button"><i class="glyphicon glyphicon-pencil"></i></button>
                                     <button ng-if="!property.protected" ng-click="removeProperty(property.name)" class="btn btn-danger" type="button"><i class="glyphicon glyphicon-remove-sign"></i></button>
                                 </div>
                             </td>
